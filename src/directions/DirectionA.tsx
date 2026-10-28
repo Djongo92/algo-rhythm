@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { useRef, useState } from 'react';
+import { AnimatePresence, motion, useScroll, useTransform } from 'framer-motion';
 import { ArrowDown, ArrowUpRight, Mail } from 'lucide-react';
 import { CaseStudyReader, type ReaderTheme } from '../components/CaseStudyReader';
 import { GrowthChart } from '../components/GrowthChart';
+import { CountUpStat } from '../components/CountUpStat';
 import { useSound } from '../lib/sound';
 import { draftCopy, flagship, images, selectedWork, services, social, type CaseStudy } from '../data/portfolio';
 
@@ -28,12 +29,27 @@ function Reveal({ children, delay = 0, className = '' }: { children: React.React
   );
 }
 
-function StatCard({ label, value, delay }: { label: string; value: string; delay: number }) {
+function StatCard({ label, highlight, delay }: { label: string; highlight: (typeof flagship.highlights)[number]; delay: number }) {
   return (
     <Reveal delay={delay} className="border-t border-white/10 py-5">
-      <p className="font-display text-3xl text-[#f2ead9] sm:text-4xl">{value}</p>
+      <CountUpStat highlight={highlight} className="font-display text-3xl text-[#f2ead9] sm:text-4xl" />
       <p className="mt-1 text-xs uppercase tracking-[0.18em] text-[#a89c87]">{label}</p>
     </Reveal>
+  );
+}
+
+/** Horizontal gallery figure with a slow scroll-linked parallax drift on the photo. */
+function ParallaxFigure({ src, caption }: { src: string; caption: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
+  const y = useTransform(scrollYProgress, [0, 1], ['-6%', '6%']);
+  return (
+    <figure className="w-64 shrink-0 sm:w-80">
+      <div ref={ref} className="relative h-80 w-full overflow-hidden rounded-sm sm:h-96">
+        <motion.img src={src} alt={caption} style={{ y }} className="photo-grade absolute inset-0 h-[124%] w-full object-cover" />
+      </div>
+      <figcaption className="mt-2 text-xs text-[#a89c87]">{caption}</figcaption>
+    </figure>
   );
 }
 
@@ -41,6 +57,14 @@ export default function DirectionA() {
   const [openSection, setOpenSection] = useState<number | null>(0);
   const [readerWork, setReaderWork] = useState<CaseStudy | null>(null);
   const { playClick } = useSound();
+
+  const heroRef = useRef<HTMLDivElement>(null);
+  const sectionsRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
+  const { scrollYProgress: sectionsProgress } = useScroll({ target: sectionsRef, offset: ['start center', 'end center'] });
+  const heroY = useTransform(heroProgress, [0, 1], ['0%', '6%']);
+  const letterboxOpacity = useTransform(heroProgress, [0, 0.6], [1, 0]);
+  const fillHeight = useTransform(sectionsProgress, v => `${Math.min(100, Math.max(0, v * 100))}%`);
 
   const openReader = (work: CaseStudy) => {
     playClick();
@@ -53,11 +77,21 @@ export default function DirectionA() {
         Staging draft — copy not final
       </div>
 
-      {/* Hero: real photo, dark overlay */}
-      <section className="relative flex min-h-screen flex-col justify-end overflow-hidden px-6 pb-20 sm:px-14">
-        <img src={images.philharmonicBassists} alt="" className="photo-grade absolute inset-0 h-full w-full object-cover" />
+      {/* Hero: real photo, Ken Burns zoom, scroll parallax, letterbox bars */}
+      <section ref={heroRef} className="relative flex min-h-screen flex-col justify-end overflow-hidden px-6 pb-20 sm:px-14">
+        <motion.img
+          src={images.philharmonicBassists}
+          alt=""
+          initial={{ scale: 1.14 }}
+          animate={{ scale: 1.22 }}
+          transition={{ duration: 24, ease: 'linear' }}
+          style={{ y: heroY }}
+          className="photo-grade absolute inset-0 h-full w-full object-cover"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0c0b09] via-[#0c0b09]/70 to-[#0c0b09]/20" />
         <div className="absolute inset-0 bg-[#0c0b09]/30" />
+        <motion.div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-4 bg-[#0c0b09] sm:h-6" style={{ opacity: letterboxOpacity }} />
+        <motion.div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-4 bg-[#0c0b09] sm:h-6" style={{ opacity: letterboxOpacity }} />
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -127,53 +161,57 @@ export default function DirectionA() {
 
             <div className="mt-10 grid grid-cols-2 gap-x-8 gap-y-2 sm:grid-cols-3">
               {flagship.highlights.map((h, i) => (
-                <StatCard key={h.label} label={h.label} value={h.value} delay={i * 0.05} />
+                <StatCard key={h.label} label={h.label} highlight={h} delay={i * 0.05} />
               ))}
             </div>
           </div>
 
           <Reveal delay={0.1}>
-            <div className="divide-y divide-white/10 border border-white/10">
-              {flagship.sections.map((section, i) => {
-                const open = openSection === i;
-                return (
-                  <div key={section.heading}>
-                    <button
-                      onClick={() => setOpenSection(open ? null : i)}
-                      className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"
-                    >
-                      <span className="font-display text-lg text-[#f2ead9]">{section.heading}</span>
-                      <span className={`font-display text-xl text-[#d4a373] transition-transform ${open ? 'rotate-45' : ''}`}>+</span>
-                    </button>
-                    <AnimatePresence initial={false}>
-                      {open && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                          className="overflow-hidden"
-                        >
-                          <p className="px-6 pb-6 text-sm leading-relaxed text-[#a89c87]">{section.body}</p>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                );
-              })}
+            {/* Numbered chapter markers with a scroll-progress fill-line */}
+            <div ref={sectionsRef} className="relative border border-white/10">
+              <div className="absolute inset-y-0 left-0 w-[2px] bg-white/10" />
+              <motion.div className="absolute left-0 top-0 w-[2px] bg-[#d4a373]" style={{ height: fillHeight }} />
+              <div className="divide-y divide-white/10">
+                {flagship.sections.map((section, i) => {
+                  const open = openSection === i;
+                  return (
+                    <div key={section.heading}>
+                      <button
+                        onClick={() => setOpenSection(open ? null : i)}
+                        className="flex w-full items-center gap-5 px-6 py-5 text-left"
+                      >
+                        <span className={`font-display text-sm transition-colors ${open ? 'text-[#d4a373]' : 'text-[#6f6552]'}`}>
+                          {String(i + 1).padStart(2, '0')}
+                        </span>
+                        <span className="font-display text-lg text-[#f2ead9]">{section.heading}</span>
+                      </button>
+                      <AnimatePresence initial={false}>
+                        {open && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                            className="overflow-hidden"
+                          >
+                            <p className="px-6 pb-6 pl-16 text-sm leading-relaxed text-[#a89c87]">{section.body}</p>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </Reveal>
         </div>
 
-        {/* Real photo gallery from the engagement */}
+        {/* Real photo gallery from the engagement, with a slow parallax drift */}
         <Reveal delay={0.1} className="mt-16">
           <p className="mb-4 text-xs uppercase tracking-[0.2em] text-[#a89c87]">From the work</p>
           <div className="flex gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {flagship.gallery.map(item => (
-              <figure key={item.src} className="w-64 shrink-0 sm:w-80">
-                <img src={item.src} alt={item.caption} className="photo-grade h-80 w-full rounded-sm object-cover sm:h-96" />
-                <figcaption className="mt-2 text-xs text-[#a89c87]">{item.caption}</figcaption>
-              </figure>
+              <ParallaxFigure key={item.src} src={item.src} caption={item.caption} />
             ))}
           </div>
         </Reveal>
@@ -235,8 +273,9 @@ export default function DirectionA() {
       {/* About */}
       <section className="border-t border-white/10 px-6 py-24 sm:px-14">
         <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
-          <Reveal>
+          <Reveal className="grid gap-3 sm:grid-cols-2">
             <img src={images.tisaPortrait} alt="Tisa" className="photo-grade aspect-[4/5] w-full rounded-sm object-cover" />
+            <img src={images.officeCandid} alt="At work" className="photo-grade hidden aspect-[4/5] w-full rounded-sm object-cover sm:block" />
           </Reveal>
           <Reveal delay={0.1}>
             <p className="text-xs uppercase tracking-[0.2em] text-[#d4a373]">About</p>

@@ -1,8 +1,9 @@
-import { useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion, useMotionValue, useSpring } from 'framer-motion';
 import { ArrowUpRight } from 'lucide-react';
 import { CaseStudyReader, type ReaderTheme } from '../components/CaseStudyReader';
 import { GrowthChart } from '../components/GrowthChart';
+import { CountUpStat } from '../components/CountUpStat';
 import { useSound } from '../lib/sound';
 import { caseStudies, draftCopy, flagship, images, services, social, type CaseStudy } from '../data/portfolio';
 
@@ -16,12 +17,15 @@ const THEME: ReaderTheme = {
   headingClass: 'font-black',
 };
 
-function Marquee({ text }: { text: string }) {
+function Marquee({ text, direction = 'left', tone = 'accent' }: { text: string; direction?: 'left' | 'right'; tone?: 'accent' | 'dark' }) {
+  const anim = direction === 'left' ? ['0%', '-50%'] : ['-50%', '0%'];
+  const bg = tone === 'accent' ? ACCENT : '#000000';
+  const fg = tone === 'accent' ? 'text-black' : 'text-white';
   return (
-    <div className="overflow-hidden border-y-4 border-black bg-[var(--accent)] py-3" style={{ '--accent': ACCENT } as React.CSSProperties}>
+    <div className="overflow-hidden border-y-4 border-black py-3" style={{ backgroundColor: bg }}>
       <motion.div
-        className="flex w-max gap-10 whitespace-nowrap font-grotesk text-sm font-bold uppercase tracking-wide text-black"
-        animate={{ x: ['0%', '-50%'] }}
+        className={`flex w-max gap-10 whitespace-nowrap font-grotesk text-sm font-bold uppercase tracking-wide ${fg}`}
+        animate={{ x: anim }}
         transition={{ duration: 18, repeat: Infinity, ease: 'linear' }}
       >
         {Array.from({ length: 8 }).map((_, i) => (
@@ -56,8 +60,55 @@ function MagneticButton({ children, href }: { children: React.ReactNode; href: s
   );
 }
 
+/** A rail tile with cursor-following 3D tilt. */
+function TiltTile({
+  onClick,
+  style,
+  className,
+  children,
+  badge,
+}: {
+  onClick: () => void;
+  style?: React.CSSProperties;
+  className: string;
+  children: React.ReactNode;
+  badge?: React.ReactNode;
+}) {
+  const rotateX = useMotionValue(0);
+  const rotateY = useMotionValue(0);
+  const springX = useSpring(rotateX, { stiffness: 150, damping: 16 });
+  const springY = useSpring(rotateY, { stiffness: 150, damping: 16 });
+
+  return (
+    <motion.button
+      onClick={onClick}
+      data-cursor="link"
+      whileHover={{ scale: 0.98 }}
+      onMouseMove={e => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const px = (e.clientX - rect.left) / rect.width - 0.5;
+        const py = (e.clientY - rect.top) / rect.height - 0.5;
+        rotateY.set(px * 14);
+        rotateX.set(py * -14);
+      }}
+      onMouseLeave={() => {
+        rotateX.set(0);
+        rotateY.set(0);
+      }}
+      style={{ ...style, rotateX: springX, rotateY: springY, transformPerspective: 900 }}
+      className={className}
+    >
+      {children}
+      {badge}
+    </motion.button>
+  );
+}
+
 export default function DirectionB() {
-  const railRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const railX = useMotionValue(0);
+  const [constraint, setConstraint] = useState(0);
   const [readerWork, setReaderWork] = useState<CaseStudy | null>(null);
   const { playClick } = useSound();
 
@@ -65,6 +116,16 @@ export default function DirectionB() {
     playClick();
     setReaderWork(work);
   };
+
+  useEffect(() => {
+    const measure = () => {
+      if (!containerRef.current || !trackRef.current) return;
+      setConstraint(Math.min(0, containerRef.current.offsetWidth - trackRef.current.scrollWidth));
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, []);
 
   return (
     <div className="bg-[#faf9f6] font-grotesk text-black selection:bg-[var(--accent)]" style={{ '--accent': ACCENT } as React.CSSProperties}>
@@ -120,7 +181,8 @@ export default function DirectionB() {
         </motion.div>
       </section>
 
-      <Marquee text={`${flagship.subject} • +64% REACH • 10X TIKTOK GROWTH • 2.5X INSTAGRAM`} />
+      <Marquee text={`${flagship.subject} • +64% REACH • 10X TIKTOK GROWTH • 2.5X INSTAGRAM`} direction="left" tone="accent" />
+      <Marquee text={services.join(' • ')} direction="right" tone="dark" />
 
       {/* Flagship stats */}
       <section className="grid gap-10 px-6 py-20 sm:px-14 lg:grid-cols-[1.3fr_0.7fr]">
@@ -137,7 +199,7 @@ export default function DirectionB() {
                 viewport={{ once: true, margin: '-60px' }}
                 transition={{ type: 'spring', stiffness: 200, damping: 14, delay: i * 0.05 }}
               >
-                <p className="font-black text-5xl leading-none sm:text-6xl" style={{ color: i % 2 ? ACCENT : 'black' }}>{h.value}</p>
+                <CountUpStat highlight={h} className="font-black text-5xl leading-none sm:text-6xl" style={{ color: i % 2 ? ACCENT : 'black' }} />
                 <p className="mt-2 font-grotesk text-xs font-bold uppercase tracking-wide text-black/50">{h.label}</p>
               </motion.div>
             ))}
@@ -168,44 +230,56 @@ export default function DirectionB() {
         </div>
       </section>
 
-      {/* Portfolio rail — real photos, color-tinted */}
+      {/* Portfolio rail — real drag momentum + wheel, 3D tilt on hover */}
       <section className="border-y-4 border-black py-16">
         <p className="mb-6 px-6 font-grotesk text-xs font-bold uppercase tracking-wide text-black/50 sm:px-14">
           Selected work — drag or scroll →
         </p>
         <div
-          ref={railRef}
+          ref={containerRef}
           onWheel={e => {
-            if (!railRef.current) return;
-            railRef.current.scrollLeft += e.deltaY;
+            const next = railX.get() - e.deltaY;
+            railX.set(Math.min(0, Math.max(constraint, next)));
           }}
-          className="flex gap-4 overflow-x-auto px-6 pb-2 [scrollbar-width:none] sm:px-14 [&::-webkit-scrollbar]:hidden"
+          className="cursor-grab overflow-hidden px-6 sm:px-14 active:cursor-grabbing"
         >
-          {caseStudies.map((work, i) => (
-            <motion.button
-              key={work.id}
-              onClick={() => openReader(work)}
-              data-cursor="link"
-              whileHover={{ scale: 0.98 }}
-              className="relative flex h-64 w-56 shrink-0 flex-col justify-between overflow-hidden rounded-2xl p-6 text-left sm:h-80 sm:w-72"
-              style={{ backgroundColor: work.heroImage ? undefined : work.accent }}
-            >
-              {work.heroImage && (
-                <>
-                  <img src={work.heroImage} alt="" className="photo-grade absolute inset-0 h-full w-full object-cover" />
-                  <div className="absolute inset-0" style={{ backgroundColor: work.accent, mixBlendMode: 'color', opacity: 0.6 }} />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                </>
-              )}
-              <p className="relative font-grotesk text-xs font-bold uppercase tracking-wide text-white/80">{work.dateRange}</p>
-              <div className="relative">
-                <p className="font-black text-2xl leading-tight text-white sm:text-3xl">{work.subject}</p>
-                <p className="mt-2 text-xs text-white/80">{work.tag}</p>
-              </div>
-              <span className="absolute left-0 top-0 h-full w-full ring-1 ring-inset ring-white/10" />
-              {i === 0 && <span className="absolute right-3 top-3 rounded-full bg-white px-2 py-0.5 text-[10px] font-bold uppercase text-black">Flagship</span>}
-            </motion.button>
-          ))}
+          <motion.div
+            ref={trackRef}
+            drag="x"
+            dragConstraints={{ left: constraint, right: 0 }}
+            dragElastic={0.12}
+            dragMomentum
+            style={{ x: railX }}
+            className="flex w-max gap-4 pb-2"
+          >
+            {caseStudies.map((work, i) => (
+              <TiltTile
+                key={work.id}
+                onClick={() => openReader(work)}
+                style={{ backgroundColor: work.heroImage ? undefined : work.accent }}
+                className="relative flex h-64 w-56 shrink-0 flex-col justify-between overflow-hidden rounded-2xl p-6 text-left sm:h-80 sm:w-72"
+                badge={
+                  <>
+                    <span className="absolute left-0 top-0 h-full w-full ring-1 ring-inset ring-white/10" />
+                    {i === 0 && <span className="absolute right-3 top-3 rounded-full bg-white px-2 py-0.5 text-[10px] font-bold uppercase text-black">Flagship</span>}
+                  </>
+                }
+              >
+                {work.heroImage && (
+                  <>
+                    <img src={work.heroImage} alt="" className="photo-grade absolute inset-0 h-full w-full object-cover" />
+                    <div className="absolute inset-0" style={{ backgroundColor: work.accent, mixBlendMode: 'color', opacity: 0.6 }} />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                  </>
+                )}
+                <p className="relative font-grotesk text-xs font-bold uppercase tracking-wide text-white/80">{work.dateRange}</p>
+                <div className="relative">
+                  <p className="font-black text-2xl leading-tight text-white sm:text-3xl">{work.subject}</p>
+                  <p className="mt-2 text-xs text-white/80">{work.tag}</p>
+                </div>
+              </TiltTile>
+            ))}
+          </motion.div>
         </div>
       </section>
 

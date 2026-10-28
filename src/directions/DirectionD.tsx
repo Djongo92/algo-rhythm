@@ -4,7 +4,7 @@ import { ArrowUpRight } from 'lucide-react';
 import { CaseStudyReader, type ReaderTheme } from '../components/CaseStudyReader';
 import { GrowthChart } from '../components/GrowthChart';
 import { useSound } from '../lib/sound';
-import { awards, draftCopy, flagship, images, selectedWork, services, social, type CaseStudy } from '../data/portfolio';
+import { awards, draftCopy, flagship, images, press, selectedWork, services, social, type CaseStudy } from '../data/portfolio';
 
 const INK = '#141414';
 const MUTED = 'rgba(20,20,20,0.6)';
@@ -97,7 +97,7 @@ export default function DirectionD() {
             <h2 className="mt-3 font-serif-editorial text-3xl font-semibold sm:text-4xl">Follower growth, platform by platform</h2>
           </Reveal>
           <Reveal delay={0.1} className="mt-8">
-            <GrowthChart theme={{ fg: INK, muted: MUTED, track: RULE, accent: ACCENT }} headingClass="font-serif-editorial font-semibold" />
+            <GrowthChart theme={{ fg: INK, muted: MUTED, track: RULE, accent: ACCENT }} headingClass="font-serif-editorial font-semibold" interactive />
           </Reveal>
           <p className="mt-6 font-mono-data text-[11px]" style={{ color: MUTED }}>
             Source: internal platform analytics, May 2023 – February 2026. Figures as reported by the client's own account dashboards.
@@ -136,7 +136,19 @@ export default function DirectionD() {
         </div>
       </section>
 
-      {/* Related reports */}
+      {/* Pull-quote */}
+      <section className="border-b px-6 py-16 sm:px-14" style={{ borderColor: RULE }}>
+        <Reveal>
+          <blockquote className="mx-auto max-w-3xl text-center">
+            <span className="font-serif-editorial text-6xl leading-none" style={{ color: ACCENT }}>&ldquo;</span>
+            <p className="-mt-4 font-serif-editorial text-3xl font-semibold italic leading-snug sm:text-4xl">
+              A single 2024 post reached more than 4 million views on its own.
+            </p>
+          </blockquote>
+        </Reveal>
+      </section>
+
+      {/* Related reports — with thumbnails */}
       <section className="border-b px-6 py-14 sm:px-14" style={{ borderColor: RULE }}>
         <Reveal className="mb-6">
           <p className="font-mono-data text-xs uppercase tracking-widest" style={{ color: ACCENT }}>Related Reports</p>
@@ -144,8 +156,13 @@ export default function DirectionD() {
         <div className="divide-y" style={{ borderColor: RULE }}>
           {[flagship, ...selectedWork].map((work, i) => (
             <Reveal key={work.id} delay={i * 0.04}>
-              <button onClick={() => openReader(work)} data-cursor="link" className="flex w-full items-center justify-between gap-4 py-5 text-left">
-                <div>
+              <button onClick={() => openReader(work)} data-cursor="link" className="flex w-full items-center gap-4 py-5 text-left">
+                {work.heroImage ? (
+                  <img src={work.heroImage} alt="" className="photo-grade h-14 w-14 shrink-0 rounded-sm object-cover grayscale" />
+                ) : (
+                  <div className="h-14 w-14 shrink-0 rounded-sm border" style={{ borderColor: RULE }} />
+                )}
+                <div className="min-w-0 flex-1">
                   <p className="font-serif-editorial text-lg font-semibold">{work.subject}</p>
                   <p className="font-mono-data text-xs" style={{ color: MUTED }}>{work.dateRange} — {work.tag}</p>
                 </div>
@@ -171,10 +188,31 @@ export default function DirectionD() {
         </div>
       </section>
 
+      {/* Notes & sources — the press bibliography as numbered citations */}
+      <section className="border-b px-6 py-14 sm:px-14" style={{ borderColor: RULE }}>
+        <Reveal className="mb-6">
+          <p className="font-mono-data text-xs uppercase tracking-widest" style={{ color: ACCENT }}>Notes &amp; Sources</p>
+        </Reveal>
+        <ol className="space-y-2">
+          {press.map((p, i) => (
+            <Reveal key={p.title} delay={i * 0.05}>
+              <li className="flex gap-3 font-mono-data text-xs" style={{ color: MUTED }}>
+                <span style={{ color: ACCENT }}>[{i + 1}]</span>
+                <span>{p.title} — {p.outlet}, {p.year}. {p.kind}.</span>
+              </li>
+            </Reveal>
+          ))}
+        </ol>
+        <p className="mt-6 max-w-2xl font-mono-data text-[11px]" style={{ color: MUTED }}>
+          Methodology note: figures throughout this report are drawn from the client's own reported platform analytics. This is not an independently audited measurement.
+        </p>
+      </section>
+
       {/* Correspondent bio */}
       <section className="grid gap-8 border-b px-6 py-14 sm:px-14 lg:grid-cols-[0.5fr_1.5fr]" style={{ borderColor: RULE }}>
-        <Reveal>
+        <Reveal className="space-y-3">
           <img src={images.tisaPortrait} alt="Tisa" className="photo-grade aspect-[4/5] w-full object-cover grayscale" />
+          <img src={images.interviewSession} alt="On assignment, interviewing for a feature" className="photo-grade aspect-[16/9] w-full object-cover grayscale" />
         </Reveal>
         <Reveal delay={0.1}>
           <p className="font-mono-data text-xs uppercase tracking-widest" style={{ color: ACCENT }}>The Correspondent</p>

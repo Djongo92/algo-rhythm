@@ -27,7 +27,14 @@ export const images = {
   recordingStudio: img('recording-studio.jpg'),
 };
 
-export type Highlight = { label: string; value: string };
+export type Highlight = {
+  label: string;
+  value: string;
+  // Structured hint for an animated count-up — kept separate from `value`
+  // because the display strings (e.g. "0 → 7,200", "4M+ views") are too
+  // varied to parse reliably back into a number.
+  numeric?: { to: number; decimals?: number; prefix?: string; suffix?: string; thousands?: boolean };
+};
 export type Section = { heading: string; body: string };
 export type GalleryItem = { src: string; caption: string };
 
@@ -61,6 +68,8 @@ export const caseStudies: CaseStudy[] = [
       { src: images.zubinMehtaGala, caption: 'Zubin Mehta Gala, Kolarac Great Hall' },
       { src: images.crescendoBrochure, caption: 'CRESCENDO — the 2025/26 season brochure' },
       { src: images.filmingRehearsal, caption: 'Shooting rehearsal footage from the hall' },
+      { src: images.deskFlatlay, caption: 'Planning the season, one brochure draft at a time' },
+      { src: images.auditoriumCandid, caption: 'Kolarac Great Hall, between sets' },
     ],
     narrative: [
       "Since 2023, work for the Belgrade Philharmonic Orchestra has covered social media management across six platforms plus YouTube, website and editorial content maintenance, and supporting offline/print work.",
@@ -75,12 +84,12 @@ export const caseStudies: CaseStudy[] = [
       { heading: 'Community & audience building', body: "Audience development work including the ‘Baby Concerts’ video series (4+ million views, 166K likes, 52.6K shares) and steady follower growth across every platform the Orchestra uses." },
     ],
     highlights: [
-      { label: 'Instagram', value: '2.5x growth' },
-      { label: 'TikTok', value: '10x growth' },
-      { label: 'Threads', value: '0 → 7,200' },
-      { label: 'Top post', value: '4M+ views' },
-      { label: 'Cadence', value: '20+ posts/wk' },
-      { label: 'Total reach', value: '+64%' },
+      { label: 'Instagram', value: '2.5x growth', numeric: { to: 2.5, decimals: 1, suffix: 'x growth' } },
+      { label: 'TikTok', value: '10x growth', numeric: { to: 10, suffix: 'x growth' } },
+      { label: 'Threads', value: '0 → 7,200', numeric: { to: 7200, prefix: '0 → ', thousands: true } },
+      { label: 'Top post', value: '4M+ views', numeric: { to: 4, suffix: 'M+ views' } },
+      { label: 'Cadence', value: '20+ posts/wk', numeric: { to: 20, suffix: '+ posts/wk' } },
+      { label: 'Total reach', value: '+64%', numeric: { to: 64, prefix: '+', suffix: '%' } },
     ],
   },
   {
@@ -90,7 +99,7 @@ export const caseStudies: CaseStudy[] = [
     tag: 'SEO & content-marketing agency · multi-client',
     flagship: false,
     accent: '#2f7de8',
-    heroImage: images.deskFlatlay,
+    heroImage: null,
     gallery: [],
     narrative: [
       'Agency-side work spanning three to four concurrent clients, centered on content strategy, SEO publishing, and performance tracking.',
