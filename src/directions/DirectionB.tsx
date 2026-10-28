@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowUpRight, X } from 'lucide-react';
-import { caseStudies, draftCopy, flagship, services, social } from '../data/portfolio';
+import { caseStudies, draftCopy, flagship, images, services, social } from '../data/portfolio';
 
 const ACCENT = '#ff4b2b';
 
@@ -95,6 +95,13 @@ function CaseModal({ id, onClose }: { id: string; onClose: () => void }) {
             ))}
           </div>
         )}
+        {work.gallery.length > 0 && (
+          <div className="mt-6 grid grid-cols-2 gap-2 border-t-2 border-black/10 pt-6">
+            {work.gallery.map(item => (
+              <img key={item.src} src={item.src} alt={item.caption} className="h-28 w-full rounded-lg object-cover" />
+            ))}
+          </div>
+        )}
       </motion.div>
     </motion.div>
   );
@@ -103,7 +110,6 @@ function CaseModal({ id, onClose }: { id: string; onClose: () => void }) {
 export default function DirectionB() {
   const railRef = useRef<HTMLDivElement>(null);
   const [activeCase, setActiveCase] = useState<string | null>(null);
-  const tileColors = ['#111111', ACCENT, '#111111', ACCENT, '#111111'];
 
   return (
     <div className="bg-[#faf9f6] font-grotesk text-black selection:bg-[var(--accent)]" style={{ '--accent': ACCENT } as React.CSSProperties}>
@@ -112,74 +118,96 @@ export default function DirectionB() {
       </div>
 
       {/* Hero */}
-      <section className="flex min-h-screen flex-col justify-center overflow-hidden px-6 pt-24 sm:px-14">
-        <motion.p
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-4 font-grotesk text-sm font-bold uppercase tracking-[0.3em]"
-          style={{ color: ACCENT }}
+      <section className="grid min-h-screen grid-cols-1 overflow-hidden pt-20 lg:grid-cols-[1.2fr_0.8fr]">
+        <div className="flex flex-col justify-center px-6 sm:px-14">
+          <motion.p
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 font-grotesk text-sm font-bold uppercase tracking-[0.3em]"
+            style={{ color: ACCENT }}
+          >
+            {draftCopy.kicker} Studio
+          </motion.p>
+          <h1 className="font-black leading-[0.92] tracking-tight">
+            {['REAL GROWTH.', 'NO FLUFF.'].map((line, i) => (
+              <motion.span
+                key={line}
+                initial={{ opacity: 0, x: -40 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.7, delay: 0.15 + i * 0.12, ease: [0.22, 1, 0.36, 1] }}
+                className="block text-[13vw] lg:text-[6vw]"
+              >
+                {line}
+              </motion.span>
+            ))}
+          </h1>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="mt-6 max-w-lg font-grotesk text-lg text-black/70"
+          >
+            {draftCopy.subhead}
+          </motion.p>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="mt-8">
+            <MagneticButton href={`mailto:${social.email}`}>Start a project</MagneticButton>
+          </motion.div>
+        </div>
+        <motion.div
+          initial={{ opacity: 0, scale: 1.08 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1 }}
+          className="relative hidden min-h-[320px] overflow-hidden lg:block"
         >
-          {draftCopy.kicker} Studio
-        </motion.p>
-        <h1 className="font-black leading-[0.92] tracking-tight">
-          {['REAL GROWTH.', 'NO FLUFF.'].map((line, i) => (
-            <motion.span
-              key={line}
-              initial={{ opacity: 0, x: -40 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.7, delay: 0.15 + i * 0.12, ease: [0.22, 1, 0.36, 1] }}
-              className="block text-[14vw] sm:text-[7.5vw]"
-            >
-              {line}
-            </motion.span>
-          ))}
-        </h1>
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="mt-6 max-w-lg font-grotesk text-lg text-black/70"
-        >
-          {draftCopy.subhead}
-        </motion.p>
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="mt-8">
-          <MagneticButton href={`mailto:${social.email}`}>Start a project</MagneticButton>
+          <img src={images.heroEvent} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <div className="absolute inset-0" style={{ backgroundColor: ACCENT, mixBlendMode: 'color', opacity: 0.55 }} />
+          <div className="absolute inset-0 bg-black/10" />
         </motion.div>
       </section>
 
       <Marquee text={`${flagship.subject} • +64% REACH • 10X TIKTOK GROWTH • 2.5X INSTAGRAM`} />
 
       {/* Flagship stats */}
-      <section className="px-6 py-20 sm:px-14">
-        <p className="mb-8 font-grotesk text-xs font-bold uppercase tracking-wide text-black/50">
-          Flagship — {flagship.subject} · {flagship.dateRange}
-        </p>
-        <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
-          {flagship.highlights.map((h, i) => (
-            <motion.div
-              key={h.label}
-              initial={{ opacity: 0, scale: 0.7, rotate: -4 }}
-              whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
-              viewport={{ once: true, margin: '-60px' }}
-              transition={{ type: 'spring', stiffness: 200, damping: 14, delay: i * 0.05 }}
-            >
-              <p className="font-black text-5xl leading-none sm:text-6xl" style={{ color: i % 2 ? ACCENT : 'black' }}>{h.value}</p>
-              <p className="mt-2 font-grotesk text-xs font-bold uppercase tracking-wide text-black/50">{h.label}</p>
-            </motion.div>
-          ))}
+      <section className="grid gap-10 px-6 py-20 sm:px-14 lg:grid-cols-[1.3fr_0.7fr]">
+        <div>
+          <p className="mb-8 font-grotesk text-xs font-bold uppercase tracking-wide text-black/50">
+            Flagship — {flagship.subject} · {flagship.dateRange}
+          </p>
+          <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
+            {flagship.highlights.map((h, i) => (
+              <motion.div
+                key={h.label}
+                initial={{ opacity: 0, scale: 0.7, rotate: -4 }}
+                whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
+                viewport={{ once: true, margin: '-60px' }}
+                transition={{ type: 'spring', stiffness: 200, damping: 14, delay: i * 0.05 }}
+              >
+                <p className="font-black text-5xl leading-none sm:text-6xl" style={{ color: i % 2 ? ACCENT : 'black' }}>{h.value}</p>
+                <p className="mt-2 font-grotesk text-xs font-bold uppercase tracking-wide text-black/50">{h.label}</p>
+              </motion.div>
+            ))}
+          </div>
+          <motion.button
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            onClick={() => setActiveCase(flagship.id)}
+            className="mt-10 inline-flex items-center gap-2 border-b-2 border-black font-grotesk font-bold uppercase tracking-wide"
+          >
+            Read the full case study <ArrowUpRight className="h-4 w-4" />
+          </motion.button>
         </div>
-        <motion.button
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
+        <motion.img
+          initial={{ opacity: 0, scale: 0.9 }}
+          whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
-          onClick={() => setActiveCase(flagship.id)}
-          className="mt-10 inline-flex items-center gap-2 border-b-2 border-black font-grotesk font-bold uppercase tracking-wide"
-        >
-          Read the full case study <ArrowUpRight className="h-4 w-4" />
-        </motion.button>
+          src={images.babyConcertsScreenshot}
+          alt="Real Instagram post: 166K likes, 52.6K shares"
+          className="mx-auto h-auto w-40 rounded-2xl border-4 border-black shadow-[8px_8px_0_rgba(0,0,0,1)] sm:w-48"
+        />
       </section>
 
-      {/* Portfolio rail */}
+      {/* Portfolio rail — real photos, color-tinted */}
       <section className="border-y-4 border-black py-16">
         <p className="mb-6 px-6 font-grotesk text-xs font-bold uppercase tracking-wide text-black/50 sm:px-14">
           Selected work — drag or scroll →
@@ -197,14 +225,23 @@ export default function DirectionB() {
               key={work.id}
               onClick={() => setActiveCase(work.id)}
               whileHover={{ scale: 0.98 }}
-              className="flex h-64 w-56 shrink-0 flex-col justify-between rounded-2xl p-6 text-left sm:h-80 sm:w-72"
-              style={{ backgroundColor: tileColors[i % tileColors.length], color: tileColors[i % tileColors.length] === ACCENT ? 'black' : 'white' }}
+              className="relative flex h-64 w-56 shrink-0 flex-col justify-between overflow-hidden rounded-2xl p-6 text-left sm:h-80 sm:w-72"
+              style={{ backgroundColor: work.heroImage ? undefined : work.accent }}
             >
-              <p className="font-grotesk text-xs font-bold uppercase tracking-wide opacity-60">{work.dateRange}</p>
-              <div>
-                <p className="font-black text-2xl leading-tight sm:text-3xl">{work.subject}</p>
-                <p className="mt-2 text-xs opacity-70">{work.tag}</p>
+              {work.heroImage && (
+                <>
+                  <img src={work.heroImage} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                  <div className="absolute inset-0" style={{ backgroundColor: work.accent, mixBlendMode: 'color', opacity: 0.6 }} />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                </>
+              )}
+              <p className="relative font-grotesk text-xs font-bold uppercase tracking-wide text-white/80">{work.dateRange}</p>
+              <div className="relative">
+                <p className="font-black text-2xl leading-tight text-white sm:text-3xl">{work.subject}</p>
+                <p className="mt-2 text-xs text-white/80">{work.tag}</p>
               </div>
+              <span className="absolute left-0 top-0 h-full w-full ring-1 ring-inset ring-white/10" />
+              {i === 0 && <span className="absolute right-3 top-3 rounded-full bg-white px-2 py-0.5 text-[10px] font-bold uppercase text-black">Flagship</span>}
             </motion.button>
           ))}
         </div>
@@ -223,11 +260,10 @@ export default function DirectionB() {
       </section>
 
       {/* About */}
-      <section className="px-6 py-20 sm:px-14">
-        <div className="grid gap-8 lg:grid-cols-[0.6fr_1.4fr]">
-          <p className="font-black text-4xl">TISA</p>
-          <p className="max-w-2xl font-grotesk text-lg leading-relaxed text-black/80">{draftCopy.aboutBody}</p>
-        </div>
+      <section className="grid gap-8 px-6 py-20 sm:px-14 lg:grid-cols-[0.5fr_1fr_0.5fr] lg:items-center">
+        <p className="font-black text-4xl">TISA</p>
+        <p className="max-w-2xl font-grotesk text-lg leading-relaxed text-black/80">{draftCopy.aboutBody}</p>
+        <img src={images.tisaPortrait} alt="Tisa" className="aspect-square w-full rounded-2xl border-4 border-black object-cover" />
       </section>
 
       {/* Contact */}

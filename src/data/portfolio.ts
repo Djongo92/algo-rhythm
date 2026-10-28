@@ -1,9 +1,35 @@
 // All facts below are real, drawn from Tisa's actual portfolio deck and the
 // Content Desk Launch planner. Anything that reads as a tagline/headline is
 // a DRAFT pass for review, not finalized brand copy — flagged in the UI.
+//
+// Photos in /public/images are real, pulled directly from Tisa's own
+// portfolio deck -- not stock. A few generic stock/AI graphics that were
+// mixed into that deck (a "digital marketing" hologram render, a stock
+// hand-pointing-at-a-chart shot) were deliberately left out.
+
+const BASE = import.meta.env.BASE_URL;
+const img = (name: string) => `${BASE}images/${name}`;
+
+export const images = {
+  heroEvent: img('hero-event.jpg'),
+  philharmonicBassists: img('philharmonic-bassists.jpg'),
+  babyConcerts: img('baby-concerts.jpg'),
+  babyConcertsScreenshot: img('baby-concerts-screenshot.png'),
+  indiaTourViolin: img('india-tour-violin.jpg'),
+  zubinMehtaGala: img('zubin-mehta-gala.jpg'),
+  crescendoBrochure: img('crescendo-brochure.jpg'),
+  filmingRehearsal: img('filming-rehearsal.jpg'),
+  interviewSession: img('interview-session.jpg'),
+  deskFlatlay: img('desk-flatlay.jpg'),
+  tisaPortrait: img('tisa-portrait.jpg'),
+  officeCandid: img('office-candid.jpg'),
+  auditoriumCandid: img('auditorium-candid.jpg'),
+  recordingStudio: img('recording-studio.jpg'),
+};
 
 export type Highlight = { label: string; value: string };
 export type Section = { heading: string; body: string };
+export type GalleryItem = { src: string; caption: string };
 
 export type CaseStudy = {
   id: string;
@@ -13,6 +39,9 @@ export type CaseStudy = {
   narrative: string[];
   sections: Section[];
   highlights: Highlight[];
+  heroImage: string | null;
+  gallery: GalleryItem[];
+  accent: string;
   flagship: boolean;
 };
 
@@ -23,6 +52,16 @@ export const caseStudies: CaseStudy[] = [
     dateRange: '2023–2026',
     tag: 'Orchestra · Social, editorial & campaigns',
     flagship: true,
+    accent: '#e8432f',
+    heroImage: images.philharmonicBassists,
+    gallery: [
+      { src: images.babyConcerts, caption: 'Baby Concerts — the toddler-friendly series that passed 4M views' },
+      { src: images.babyConcertsScreenshot, caption: 'The actual post: 166K likes, 52.6K shares' },
+      { src: images.indiaTourViolin, caption: 'India Tour, January 2026' },
+      { src: images.zubinMehtaGala, caption: 'Zubin Mehta Gala, Kolarac Great Hall' },
+      { src: images.crescendoBrochure, caption: 'CRESCENDO — the 2025/26 season brochure' },
+      { src: images.filmingRehearsal, caption: 'Shooting rehearsal footage from the hall' },
+    ],
     narrative: [
       "Since 2023, work for the Belgrade Philharmonic Orchestra has covered social media management across six platforms plus YouTube, website and editorial content maintenance, and supporting offline/print work.",
       "Growth over the period has been substantial: Instagram grew 2.5x and TikTok grew 10x between 2023 and 2026, while Threads went from a standing start to over 7,200 followers. Across all platforms combined, total following rose from 78,386 to 128,814 — a 64% increase — sustained at a cadence of 20+ posts per week.",
@@ -50,6 +89,9 @@ export const caseStudies: CaseStudy[] = [
     dateRange: '2021–2023',
     tag: 'SEO & content-marketing agency · multi-client',
     flagship: false,
+    accent: '#2f7de8',
+    heroImage: images.deskFlatlay,
+    gallery: [],
     narrative: [
       'Agency-side work spanning three to four concurrent clients, centered on content strategy, SEO publishing, and performance tracking.',
     ],
@@ -67,6 +109,9 @@ export const caseStudies: CaseStudy[] = [
     dateRange: '2018–2022',
     tag: 'Cultural reporter & writer',
     flagship: false,
+    accent: '#d9a441',
+    heroImage: images.recordingStudio,
+    gallery: [],
     narrative: [
       'Four years as a cultural reporter and writer, covering music and the arts.',
     ],
@@ -79,6 +124,9 @@ export const caseStudies: CaseStudy[] = [
     dateRange: 'Current',
     tag: 'Website & concert promotion — case study in progress',
     flagship: false,
+    accent: '#2fae7d',
+    heroImage: null,
+    gallery: [],
     narrative: [
       'An active client. Website and concert-promotion work; the full case study is still being assembled.',
     ],

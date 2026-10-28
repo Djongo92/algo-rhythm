@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowDown, ArrowUpRight, Mail } from 'lucide-react';
-import { draftCopy, flagship, selectedWork, services, social } from '../data/portfolio';
+import { draftCopy, flagship, images, selectedWork, services, social } from '../data/portfolio';
 
 function Reveal({ children, delay = 0, className = '' }: { children: React.ReactNode; delay?: number; className?: string }) {
   return (
@@ -14,26 +14,6 @@ function Reveal({ children, delay = 0, className = '' }: { children: React.React
     >
       {children}
     </motion.div>
-  );
-}
-
-function Waveform() {
-  const bars = Array.from({ length: 48 }, (_, i) => i);
-  return (
-    <div className="flex h-24 items-end gap-[3px] opacity-40">
-      {bars.map(i => {
-        const h = 20 + Math.abs(Math.sin(i * 0.7)) * 70;
-        return (
-          <motion.div
-            key={i}
-            className="w-[3px] rounded-full bg-[#d4a373]"
-            initial={{ height: 6 }}
-            animate={{ height: [6, h, 10, h * 0.6, 6] }}
-            transition={{ duration: 2.4 + (i % 5) * 0.3, repeat: Infinity, ease: 'easeInOut', delay: i * 0.04 }}
-          />
-        );
-      })}
-    </div>
   );
 }
 
@@ -57,14 +37,16 @@ export default function DirectionA() {
         Staging draft — copy not final
       </div>
 
-      {/* Hero */}
-      <section className="relative flex min-h-screen flex-col justify-center overflow-hidden px-6 sm:px-14">
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_right,_rgba(212,163,115,0.12),_transparent_55%)]" />
+      {/* Hero: real photo, dark overlay */}
+      <section className="relative flex min-h-screen flex-col justify-end overflow-hidden px-6 pb-20 sm:px-14">
+        <img src={images.philharmonicBassists} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0c0b09] via-[#0c0b09]/70 to-[#0c0b09]/20" />
+        <div className="absolute inset-0 bg-[#0c0b09]/30" />
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1 }}
-          className="mb-6 text-xs font-medium uppercase tracking-[0.3em] text-[#d4a373]"
+          className="relative mb-6 text-xs font-medium uppercase tracking-[0.3em] text-[#d4a373]"
         >
           {draftCopy.kicker} — Studio
         </motion.p>
@@ -72,7 +54,7 @@ export default function DirectionA() {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-          className="max-w-4xl font-display text-[12vw] font-medium italic leading-[0.98] text-[#f2ead9] sm:text-[6.5vw]"
+          className="relative max-w-4xl font-display text-[11vw] font-medium italic leading-[0.98] text-[#f2ead9] sm:text-[6vw]"
         >
           {draftCopy.headline}
         </motion.h1>
@@ -80,7 +62,7 @@ export default function DirectionA() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.4 }}
-          className="mt-8 max-w-xl text-lg text-[#c9bda4]"
+          className="relative mt-8 max-w-xl text-lg text-[#e4d9c4]"
         >
           {draftCopy.subhead}
         </motion.p>
@@ -88,13 +70,10 @@ export default function DirectionA() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.1, duration: 0.8 }}
-          className="absolute bottom-10 left-6 flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-[#a89c87] sm:left-14"
+          className="relative mt-10 flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-[#c9bda4]"
         >
           <ArrowDown className="h-3.5 w-3.5 animate-bounce" /> Scroll
         </motion.div>
-        <div className="absolute bottom-10 right-6 hidden sm:right-14 sm:block">
-          <Waveform />
-        </div>
       </section>
 
       {/* Proposition */}
@@ -163,6 +142,19 @@ export default function DirectionA() {
             </div>
           </Reveal>
         </div>
+
+        {/* Real photo gallery from the engagement */}
+        <Reveal delay={0.1} className="mt-16">
+          <p className="mb-4 text-xs uppercase tracking-[0.2em] text-[#a89c87]">From the work</p>
+          <div className="flex gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {flagship.gallery.map(item => (
+              <figure key={item.src} className="w-64 shrink-0 sm:w-80">
+                <img src={item.src} alt={item.caption} className="h-80 w-full rounded-sm object-cover sm:h-96" />
+                <figcaption className="mt-2 text-xs text-[#a89c87]">{item.caption}</figcaption>
+              </figure>
+            ))}
+          </div>
+        </Reveal>
       </section>
 
       {/* Secondary work */}
@@ -175,11 +167,19 @@ export default function DirectionA() {
             <Reveal key={work.id} delay={i * 0.06}>
               <button
                 onClick={() => setActiveSecondary(activeSecondary === work.id ? null : work.id)}
-                className={`block w-full border px-5 py-6 text-left transition-colors ${activeSecondary === work.id ? 'border-[#d4a373] bg-[#d4a373]/5' : 'border-white/10 hover:border-white/30'}`}
+                className={`relative block h-56 w-full overflow-hidden border text-left transition-colors ${activeSecondary === work.id ? 'border-[#d4a373]' : 'border-white/10 hover:border-white/30'}`}
               >
-                <p className="font-display text-xl text-[#f2ead9]">{work.subject}</p>
-                <p className="mt-1 text-xs text-[#a89c87]">{work.dateRange}</p>
-                <p className="mt-3 text-xs leading-relaxed text-[#8f8470]">{work.tag}</p>
+                {work.heroImage && (
+                  <>
+                    <img src={work.heroImage} alt="" className="absolute inset-0 h-full w-full object-cover opacity-50" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0c0b09] via-[#0c0b09]/50 to-transparent" />
+                  </>
+                )}
+                <div className="relative flex h-full flex-col justify-end p-5">
+                  <p className="font-display text-xl text-[#f2ead9]">{work.subject}</p>
+                  <p className="mt-1 text-xs text-[#d4a373]">{work.dateRange}</p>
+                  <p className="mt-2 text-xs leading-relaxed text-[#c9bda4]">{work.tag}</p>
+                </div>
               </button>
             </Reveal>
           ))}
@@ -222,13 +222,14 @@ export default function DirectionA() {
 
       {/* About */}
       <section className="border-t border-white/10 px-6 py-24 sm:px-14">
-        <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
+        <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
           <Reveal>
-            <p className="text-xs uppercase tracking-[0.2em] text-[#d4a373]">About</p>
-            <h3 className="mt-3 font-display text-4xl italic text-[#f2ead9]">Tisa</h3>
+            <img src={images.tisaPortrait} alt="Tisa" className="aspect-[4/5] w-full rounded-sm object-cover" />
           </Reveal>
           <Reveal delay={0.1}>
-            <p className="max-w-2xl text-lg leading-relaxed text-[#d7cbb4]">{draftCopy.aboutBody}</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-[#d4a373]">About</p>
+            <h3 className="mt-3 font-display text-4xl italic text-[#f2ead9]">Tisa</h3>
+            <p className="mt-5 max-w-2xl text-lg leading-relaxed text-[#d7cbb4]">{draftCopy.aboutBody}</p>
           </Reveal>
         </div>
       </section>
