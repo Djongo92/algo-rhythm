@@ -6,6 +6,10 @@
   --font-black: "Archivo Black", system-ui, sans-serif;
   --font-grotesk: "Space Grotesk", system-ui, sans-serif;
   --font-vivid: "Unbounded", system-ui, sans-serif;
+  --font-serif-editorial: "Source Serif 4", Georgia, serif;
+  --font-mono-data: "IBM Plex Mono", ui-monospace, monospace;
+  --font-typewriter: "Special Elite", monospace;
+  --font-bebas: "Bebas Neue", system-ui, sans-serif;
 }
 
 * {
@@ -21,4 +25,17 @@ body {
 
 body {
   overflow-x: hidden;
+}
+
+/* Custom cursor is only ever enabled by Cursor.tsx on fine-pointer devices */
+body.custom-cursor,
+body.custom-cursor a,
+body.custom-cursor button {
+  cursor: none;
+}
+
+/* One consistent grade over every real photo so phone snapshots from
+   different events/lighting read as a single, art-directed system. */
+.photo-grade {
+  filter: contrast(1.08) saturate(0.9) brightness(0.97);
 }

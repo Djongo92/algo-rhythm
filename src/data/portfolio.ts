@@ -138,6 +138,32 @@ export const caseStudies: CaseStudy[] = [
 export const flagship = caseStudies.find(c => c.flagship)!;
 export const selectedWork = caseStudies.filter(c => !c.flagship);
 
+// Real platform-by-platform follower counts for the Belgrade Philharmonic
+// engagement, May 2023 -> February 2026. From the same verified portfolio data
+// as the highlights above -- not estimated.
+export type GrowthRow = { platform: string; start: number; end: number; changeLabel: string };
+export const followerGrowth: GrowthRow[] = [
+  { platform: 'Instagram', start: 18344, end: 47147, changeLabel: '+150%' },
+  { platform: 'Facebook', start: 48088, end: 56700, changeLabel: '+18%' },
+  { platform: 'TikTok', start: 64, end: 4887, changeLabel: '+7,536%' },
+  { platform: 'Twitter/X', start: 11392, end: 12059, changeLabel: '+6%' },
+  { platform: 'Threads', start: 0, end: 7278, changeLabel: 'NEW' },
+  { platform: 'LinkedIn', start: 498, end: 743, changeLabel: '+49%' },
+];
+export const followerGrowthTotal: GrowthRow = { platform: 'Total', start: 78386, end: 128814, changeLabel: '+64%' };
+
+export type Award = { title: string; issuer: string; date: string };
+export const awards: Award[] = [
+  { title: 'Music Discography Communication Achievement', issuer: 'PRO PR Globe', date: 'January 2026' },
+  { title: '"Top 50" online list', issuer: 'PC Press', date: 'February 2026' },
+];
+
+export type PressItem = { title: string; outlet: string; year: string; kind: string };
+export const press: PressItem[] = [
+  { title: 'CRESCENDO 2025/26', outlet: 'Belgrade Philharmonic', year: '2025', kind: 'Season brochure · Print' },
+  { title: "'A Modern Lady': Nobu Kôda", outlet: 'Mordents Magazine', year: '2022', kind: 'Featured article' },
+];
+
 export const services = [
   'Digital',
   'Editorial & web',

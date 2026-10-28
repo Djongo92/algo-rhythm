@@ -1,9 +1,20 @@
 import { useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowUpRight, X } from 'lucide-react';
-import { caseStudies, draftCopy, flagship, images, services, social } from '../data/portfolio';
+import { ArrowUpRight } from 'lucide-react';
+import { CaseStudyReader, type ReaderTheme } from '../components/CaseStudyReader';
+import { GrowthChart } from '../components/GrowthChart';
+import { useSound } from '../lib/sound';
+import { caseStudies, draftCopy, flagship, images, services, social, type CaseStudy } from '../data/portfolio';
 
 const ACCENT = '#ff4b2b';
+
+const THEME: ReaderTheme = {
+  bg: '#faf9f6',
+  fg: '#0a0a0a',
+  muted: 'rgba(10,10,10,0.65)',
+  accent: ACCENT,
+  headingClass: 'font-black',
+};
 
 function Marquee({ text }: { text: string }) {
   return (
@@ -28,6 +39,7 @@ function MagneticButton({ children, href }: { children: React.ReactNode; href: s
     <motion.a
       ref={ref}
       href={href}
+      data-cursor="link"
       animate={{ x: pos.x, y: pos.y }}
       transition={{ type: 'spring', stiffness: 150, damping: 12 }}
       onMouseMove={e => {
@@ -44,72 +56,15 @@ function MagneticButton({ children, href }: { children: React.ReactNode; href: s
   );
 }
 
-function CaseModal({ id, onClose }: { id: string; onClose: () => void }) {
-  const work = caseStudies.find(c => c.id === id);
-  if (!work) return null;
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[95] flex items-end justify-center bg-black/70 p-0 sm:items-center sm:p-6"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ y: 60, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: 60, opacity: 0 }}
-        transition={{ type: 'spring', stiffness: 260, damping: 26 }}
-        onClick={e => e.stopPropagation()}
-        className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-t-3xl border-4 border-black bg-[#faf9f6] p-8 sm:rounded-3xl"
-      >
-        <div className="mb-6 flex items-start justify-between">
-          <div>
-            <p className="font-grotesk text-xs font-bold uppercase tracking-wide text-black/50">{work.dateRange}</p>
-            <h3 className="font-black text-4xl leading-none text-black">{work.subject}</h3>
-          </div>
-          <button onClick={onClose} className="rounded-full border-2 border-black p-2"><X className="h-5 w-5" /></button>
-        </div>
-        {work.highlights.length > 0 && (
-          <div className="mb-6 grid grid-cols-3 gap-3">
-            {work.highlights.map(h => (
-              <div key={h.label} className="rounded-xl border-2 border-black p-3">
-                <p className="font-black text-xl text-black">{h.value}</p>
-                <p className="font-grotesk text-[10px] uppercase tracking-wide text-black/50">{h.label}</p>
-              </div>
-            ))}
-          </div>
-        )}
-        <div className="space-y-3">
-          {work.narrative.map((p, i) => (
-            <p key={i} className="font-grotesk text-sm leading-relaxed text-black/80">{p}</p>
-          ))}
-        </div>
-        {work.sections.length > 0 && (
-          <div className="mt-6 space-y-4 border-t-2 border-black/10 pt-6">
-            {work.sections.map(s => (
-              <div key={s.heading}>
-                <p className="font-grotesk text-xs font-bold uppercase tracking-wide" style={{ color: ACCENT }}>{s.heading}</p>
-                <p className="mt-1 font-grotesk text-sm text-black/70">{s.body}</p>
-              </div>
-            ))}
-          </div>
-        )}
-        {work.gallery.length > 0 && (
-          <div className="mt-6 grid grid-cols-2 gap-2 border-t-2 border-black/10 pt-6">
-            {work.gallery.map(item => (
-              <img key={item.src} src={item.src} alt={item.caption} className="h-28 w-full rounded-lg object-cover" />
-            ))}
-          </div>
-        )}
-      </motion.div>
-    </motion.div>
-  );
-}
-
 export default function DirectionB() {
   const railRef = useRef<HTMLDivElement>(null);
-  const [activeCase, setActiveCase] = useState<string | null>(null);
+  const [readerWork, setReaderWork] = useState<CaseStudy | null>(null);
+  const { playClick } = useSound();
+
+  const openReader = (work: CaseStudy) => {
+    playClick();
+    setReaderWork(work);
+  };
 
   return (
     <div className="bg-[#faf9f6] font-grotesk text-black selection:bg-[var(--accent)]" style={{ '--accent': ACCENT } as React.CSSProperties}>
@@ -159,7 +114,7 @@ export default function DirectionB() {
           transition={{ duration: 1 }}
           className="relative hidden min-h-[320px] overflow-hidden lg:block"
         >
-          <img src={images.heroEvent} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <img src={images.heroEvent} alt="" className="photo-grade absolute inset-0 h-full w-full object-cover" />
           <div className="absolute inset-0" style={{ backgroundColor: ACCENT, mixBlendMode: 'color', opacity: 0.55 }} />
           <div className="absolute inset-0 bg-black/10" />
         </motion.div>
@@ -187,15 +142,13 @@ export default function DirectionB() {
               </motion.div>
             ))}
           </div>
-          <motion.button
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            onClick={() => setActiveCase(flagship.id)}
+          <button
+            onClick={() => openReader(flagship)}
+            data-cursor="link"
             className="mt-10 inline-flex items-center gap-2 border-b-2 border-black font-grotesk font-bold uppercase tracking-wide"
           >
             Read the full case study <ArrowUpRight className="h-4 w-4" />
-          </motion.button>
+          </button>
         </div>
         <motion.img
           initial={{ opacity: 0, scale: 0.9 }}
@@ -205,6 +158,14 @@ export default function DirectionB() {
           alt="Real Instagram post: 166K likes, 52.6K shares"
           className="mx-auto h-auto w-40 rounded-2xl border-4 border-black shadow-[8px_8px_0_rgba(0,0,0,1)] sm:w-48"
         />
+      </section>
+
+      {/* Real growth chart */}
+      <section className="border-t-4 border-black px-6 py-16 sm:px-14">
+        <p className="mb-8 font-grotesk text-xs font-bold uppercase tracking-wide text-black/50">Platform by platform, May 2023 → Feb 2026</p>
+        <div className="max-w-2xl">
+          <GrowthChart theme={{ fg: '#0a0a0a', muted: 'rgba(10,10,10,0.5)', track: 'rgba(0,0,0,0.1)', accent: ACCENT }} headingClass="font-black" />
+        </div>
       </section>
 
       {/* Portfolio rail — real photos, color-tinted */}
@@ -223,14 +184,15 @@ export default function DirectionB() {
           {caseStudies.map((work, i) => (
             <motion.button
               key={work.id}
-              onClick={() => setActiveCase(work.id)}
+              onClick={() => openReader(work)}
+              data-cursor="link"
               whileHover={{ scale: 0.98 }}
               className="relative flex h-64 w-56 shrink-0 flex-col justify-between overflow-hidden rounded-2xl p-6 text-left sm:h-80 sm:w-72"
               style={{ backgroundColor: work.heroImage ? undefined : work.accent }}
             >
               {work.heroImage && (
                 <>
-                  <img src={work.heroImage} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                  <img src={work.heroImage} alt="" className="photo-grade absolute inset-0 h-full w-full object-cover" />
                   <div className="absolute inset-0" style={{ backgroundColor: work.accent, mixBlendMode: 'color', opacity: 0.6 }} />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
                 </>
@@ -263,7 +225,7 @@ export default function DirectionB() {
       <section className="grid gap-8 px-6 py-20 sm:px-14 lg:grid-cols-[0.5fr_1fr_0.5fr] lg:items-center">
         <p className="font-black text-4xl">TISA</p>
         <p className="max-w-2xl font-grotesk text-lg leading-relaxed text-black/80">{draftCopy.aboutBody}</p>
-        <img src={images.tisaPortrait} alt="Tisa" className="aspect-square w-full rounded-2xl border-4 border-black object-cover" />
+        <img src={images.tisaPortrait} alt="Tisa" className="photo-grade aspect-square w-full rounded-2xl border-4 border-black object-cover" />
       </section>
 
       {/* Contact */}
@@ -284,7 +246,7 @@ export default function DirectionB() {
       </footer>
 
       <AnimatePresence>
-        {activeCase && <CaseModal id={activeCase} onClose={() => setActiveCase(null)} />}
+        {readerWork && <CaseStudyReader work={readerWork} theme={THEME} onClose={() => setReaderWork(null)} />}
       </AnimatePresence>
     </div>
   );

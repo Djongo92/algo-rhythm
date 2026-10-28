@@ -1,7 +1,18 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowDown, ArrowUpRight, Mail } from 'lucide-react';
-import { draftCopy, flagship, images, selectedWork, services, social } from '../data/portfolio';
+import { CaseStudyReader, type ReaderTheme } from '../components/CaseStudyReader';
+import { GrowthChart } from '../components/GrowthChart';
+import { useSound } from '../lib/sound';
+import { draftCopy, flagship, images, selectedWork, services, social, type CaseStudy } from '../data/portfolio';
+
+const THEME: ReaderTheme = {
+  bg: '#0c0b09',
+  fg: '#f2ead9',
+  muted: '#a89c87',
+  accent: '#d4a373',
+  headingClass: 'font-display italic',
+};
 
 function Reveal({ children, delay = 0, className = '' }: { children: React.ReactNode; delay?: number; className?: string }) {
   return (
@@ -28,18 +39,23 @@ function StatCard({ label, value, delay }: { label: string; value: string; delay
 
 export default function DirectionA() {
   const [openSection, setOpenSection] = useState<number | null>(0);
-  const [activeSecondary, setActiveSecondary] = useState<string | null>(null);
+  const [readerWork, setReaderWork] = useState<CaseStudy | null>(null);
+  const { playClick } = useSound();
+
+  const openReader = (work: CaseStudy) => {
+    playClick();
+    setReaderWork(work);
+  };
 
   return (
     <div className="bg-[#0c0b09] font-sans text-[#f2ead9] selection:bg-[#d4a373] selection:text-[#0c0b09]">
-      {/* Draft badge */}
       <div className="fixed bottom-4 left-4 z-[90] rounded-full border border-white/15 bg-black/50 px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] text-[#a89c87] backdrop-blur-md">
         Staging draft — copy not final
       </div>
 
       {/* Hero: real photo, dark overlay */}
       <section className="relative flex min-h-screen flex-col justify-end overflow-hidden px-6 pb-20 sm:px-14">
-        <img src={images.philharmonicBassists} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <img src={images.philharmonicBassists} alt="" className="photo-grade absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0c0b09] via-[#0c0b09]/70 to-[#0c0b09]/20" />
         <div className="absolute inset-0 bg-[#0c0b09]/30" />
         <motion.p
@@ -92,7 +108,13 @@ export default function DirectionA() {
             <p className="text-xs uppercase tracking-[0.2em] text-[#d4a373]">Selected work · Flagship</p>
             <h2 className="mt-3 font-display text-5xl italic text-[#f2ead9] sm:text-7xl">{flagship.subject}</h2>
           </div>
-          <p className="text-sm text-[#a89c87]">{flagship.dateRange} — {flagship.tag}</p>
+          <button
+            onClick={() => openReader(flagship)}
+            data-cursor="link"
+            className="flex items-center gap-2 border-b border-[#d4a373] pb-1 text-sm text-[#d4a373]"
+          >
+            Open full case study <ArrowUpRight className="h-4 w-4" />
+          </button>
         </Reveal>
 
         <div className="grid gap-16 lg:grid-cols-[1.1fr_0.9fr]">
@@ -149,11 +171,17 @@ export default function DirectionA() {
           <div className="flex gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {flagship.gallery.map(item => (
               <figure key={item.src} className="w-64 shrink-0 sm:w-80">
-                <img src={item.src} alt={item.caption} className="h-80 w-full rounded-sm object-cover sm:h-96" />
+                <img src={item.src} alt={item.caption} className="photo-grade h-80 w-full rounded-sm object-cover sm:h-96" />
                 <figcaption className="mt-2 text-xs text-[#a89c87]">{item.caption}</figcaption>
               </figure>
             ))}
           </div>
+        </Reveal>
+
+        {/* Real growth, platform by platform */}
+        <Reveal delay={0.15} className="mt-16 max-w-2xl">
+          <p className="mb-6 text-xs uppercase tracking-[0.2em] text-[#a89c87]">Growth, platform by platform (May 2023 → Feb 2026)</p>
+          <GrowthChart theme={{ fg: '#f2ead9', muted: '#a89c87', track: '#ffffff1a', accent: '#d4a373' }} headingClass="font-display italic" />
         </Reveal>
       </section>
 
@@ -166,12 +194,13 @@ export default function DirectionA() {
           {selectedWork.map((work, i) => (
             <Reveal key={work.id} delay={i * 0.06}>
               <button
-                onClick={() => setActiveSecondary(activeSecondary === work.id ? null : work.id)}
-                className={`relative block h-56 w-full overflow-hidden border text-left transition-colors ${activeSecondary === work.id ? 'border-[#d4a373]' : 'border-white/10 hover:border-white/30'}`}
+                onClick={() => openReader(work)}
+                data-cursor="link"
+                className="relative block h-56 w-full overflow-hidden border border-white/10 text-left transition-colors hover:border-white/30"
               >
                 {work.heroImage && (
                   <>
-                    <img src={work.heroImage} alt="" className="absolute inset-0 h-full w-full object-cover opacity-50" />
+                    <img src={work.heroImage} alt="" className="photo-grade absolute inset-0 h-full w-full object-cover opacity-50" />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#0c0b09] via-[#0c0b09]/50 to-transparent" />
                   </>
                 )}
@@ -184,23 +213,6 @@ export default function DirectionA() {
             </Reveal>
           ))}
         </div>
-        <AnimatePresence>
-          {activeSecondary && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.4 }}
-              className="overflow-hidden"
-            >
-              <div className="mt-6 border-l-2 border-[#d4a373] pl-6">
-                {selectedWork.find(w => w.id === activeSecondary)?.narrative.map((p, i) => (
-                  <p key={i} className="max-w-2xl text-sm leading-relaxed text-[#c9bda4]">{p}</p>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </section>
 
       {/* Approach */}
@@ -224,7 +236,7 @@ export default function DirectionA() {
       <section className="border-t border-white/10 px-6 py-24 sm:px-14">
         <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
           <Reveal>
-            <img src={images.tisaPortrait} alt="Tisa" className="aspect-[4/5] w-full rounded-sm object-cover" />
+            <img src={images.tisaPortrait} alt="Tisa" className="photo-grade aspect-[4/5] w-full rounded-sm object-cover" />
           </Reveal>
           <Reveal delay={0.1}>
             <p className="text-xs uppercase tracking-[0.2em] text-[#d4a373]">About</p>
@@ -237,7 +249,7 @@ export default function DirectionA() {
       {/* Contact */}
       <section className="border-t border-white/10 px-6 py-28 sm:px-14">
         <Reveal>
-          <a href={`mailto:${social.email}`} className="group flex items-center gap-4 font-display text-5xl italic text-[#f2ead9] sm:text-7xl">
+          <a href={`mailto:${social.email}`} data-cursor="link" className="group flex items-center gap-4 font-display text-5xl italic text-[#f2ead9] sm:text-7xl">
             Let's talk
             <ArrowUpRight className="h-10 w-10 text-[#d4a373] transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
           </a>
@@ -250,6 +262,10 @@ export default function DirectionA() {
       <footer className="border-t border-white/10 px-6 py-8 text-xs text-[#6f6552] sm:px-14">
         © {new Date().getFullYear()} Algo-Rhythm — staging build, not yet public.
       </footer>
+
+      <AnimatePresence>
+        {readerWork && <CaseStudyReader work={readerWork} theme={THEME} onClose={() => setReaderWork(null)} />}
+      </AnimatePresence>
     </div>
   );
 }
