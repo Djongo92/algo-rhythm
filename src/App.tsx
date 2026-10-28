@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion, MotionConfig } from 'framer-motion';
-import { Cursor } from './components/Cursor';
 import { Grain } from './components/Grain';
 import { SmoothScroll } from './components/SmoothScroll';
 import { SoundProvider } from './lib/sound';
@@ -9,11 +8,9 @@ import DirectionA from './directions/DirectionA';
 import DirectionB from './directions/DirectionB';
 import DirectionC from './directions/DirectionC';
 import DirectionD from './directions/DirectionD';
-import DirectionE from './directions/DirectionE';
-import DirectionF from './directions/DirectionF';
 
-type View = 'a' | 'b' | 'c' | 'd' | 'e' | 'f';
-const VIEWS: View[] = ['a', 'b', 'c', 'd', 'e', 'f'];
+type View = 'a' | 'b' | 'c' | 'd';
+const VIEWS: View[] = ['a', 'b', 'c', 'd'];
 
 function readView(): View {
   if (typeof window === 'undefined') return 'a';
@@ -26,8 +23,6 @@ const OPTIONS: { key: View; label: string }[] = [
   { key: 'b', label: 'Kinetic' },
   { key: 'c', label: 'Vivid' },
   { key: 'd', label: 'Benchmark' },
-  { key: 'e', label: 'Dossier' },
-  { key: 'f', label: 'On Air' },
 ];
 
 const DIRECTIONS: Record<View, React.ComponentType> = {
@@ -35,8 +30,6 @@ const DIRECTIONS: Record<View, React.ComponentType> = {
   b: DirectionB,
   c: DirectionC,
   d: DirectionD,
-  e: DirectionE,
-  f: DirectionF,
 };
 
 export default function App() {
@@ -55,7 +48,6 @@ export default function App() {
       <SoundProvider>
         <SmoothScroll>
           <Grain />
-          <Cursor />
           <div className="fixed top-4 right-4 z-[100] flex items-center gap-2">
             <SoundToggle className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-black/40 text-white/80 backdrop-blur-md hover:text-white" />
             <div className="flex flex-wrap items-center gap-1 rounded-full border border-white/15 bg-black/40 p-1 text-xs font-medium backdrop-blur-md shadow-lg">
@@ -63,7 +55,6 @@ export default function App() {
                 <button
                   key={option.key}
                   onClick={() => setView(option.key)}
-                  data-cursor="link"
                   className={`rounded-full px-3 py-1.5 transition-colors ${view === option.key ? 'bg-white text-black' : 'text-white/70 hover:text-white'}`}
                 >
                   {option.label}
